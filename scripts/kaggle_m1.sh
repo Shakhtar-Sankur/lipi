@@ -62,7 +62,7 @@ train() {  # train NAME ARGS...
     grep --line-buffered -E '^\{' | python -c "import sys,json
 for l in sys.stdin:
     r=json.loads(l)
-    if 'phase' in r or r['step'] % 100 == 0 or r.get('progress', 0) > 0.99: print(l, end='', flush=True)" \
+    if 'phase' in r or r['step'] % 100 == 0 or r['step'] < 3 or r.get('progress', 0) > 0.99: print(l, end='', flush=True)" \
     || { echo "== train $name failed:"; grep -v -E "torch/distributed|^\s+[~^]+$" runs/train-$name.log | grep -E -B3 -A12 "Error|error:|Traceback" | head -60; exit 1; }
 }
 

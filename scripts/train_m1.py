@@ -111,8 +111,14 @@ def main():
         steps = min(steps, a.max_steps)
     emb = model.get_input_embeddings().weight
     others = [p for p in model.parameters() if p is not emb]
-    opt = torch.optim.AdamW([{"params": [emb], "lr": a.embedding_lr}, {"params": others, "lr": a.lr}],
-                            betas=(0.9, 0.95), weight_decay=0.0, foreach=False)   # no parameter-sized temporaries
+    groups = [{"params": [emb], "lr": a.embedding_lr}, {"params": others, "lr": a.lr}]
+    adam = dict(betas=(0.9, 0.95), weight_decay=0.0, foreach=False)   # foreach=False: no parameter-sized temporaries
+    if distributed:
+        # ZeRO-1: each GPU keeps AdamW's state for half the parameters (2 GB instead of 4 GB here)
+        from torch.distributed.optim import ZeroRedundancyOptimizer
+        opt = ZeroRedundancyOptimizer(groups, optimizer_class=torch.optim.AdamW, **adam)
+    else:
+        opt = torch.optim.AdamW(groups, **adam)
     peaks = [a.embedding_lr, a.lr]
     warm = max(1, steps // 20)
     ddp = LossModel(model)
@@ -142,17 +148,25 @@ def main():
         torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
         scaler.step(opt)
         scaler.update()
-        opt.zero_grad(set_to_none=True)
+        opt.zero_grad(set_to_none=False)   # keep the gradients in DDP's buckets instead of reallocating them
         seen += per_step * a.seq * world
-        if rank == 0 and (step % 20 == 0 or step == steps - 1):
+        if rank == 0 and (step % 20 == 0 or step < 3 or step == steps - 1):
             el = time.time() - t0
             rec = {"step": step, "loss": round(total, 4), "tokens": seen, "elapsed": round(el, 1),
                    "tokens_per_s": round(seen / max(el, 1e-9)), "progress": round(frac, 3)}
             if device != "cpu":
                 rec["max_memory_gb"] = round(torch.cuda.max_memory_allocated() / 2**30, 2)
+                rec["memory_gb"] = round(torch.cuda.memory_allocated() / 2**30, 2)
             log.append(rec)
             print(json.dumps(rec), flush=True)
+    agree = True
+    if distributed:   # every rank must hold the same weights (ZeRO-1 broadcasts each shard after its step)
+        check = torch.stack([p.detach().double().sum() for p in model.parameters()]).to(device)
+        other = [torch.zeros_like(check) for _ in range(world)]
+        dist.all_gather(other, check)
+        agree = all(torch.equal(other[0], o) for o in other)
     if rank == 0:
+        print(json.dumps({"phase": "done", "ranks_agree": agree, "seconds": round(time.time() - t0, 1)}), flush=True)
         os.makedirs(a.out, exist_ok=True)
         model.to(torch.float16).save_pretrained(a.out, safe_serialization=True)
         json.dump(cfg, open(os.path.join(a.out, "tokenizer.json"), "w"), ensure_ascii=False)
