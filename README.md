@@ -5,7 +5,9 @@ writes in tokens, and it is priced, timed and limited in tokens. The same senten
 more tokens in an Indian language than in English, so Indian users pay more per answer, wait
 longer for it, and fit less of their text in the model's memory. lipi measures that tax for
 every Indian language in FLORES-200 across 15 tokenizers that ship with today's models, and
-then works to remove it from an open model (the plan is below).
+then removes it from an open model: one extended tokenizer, lipi-Indic, takes fewer tokens
+than both GPT-4o's and Gemini's in 23 of the 24 languages, with a smaller vocabulary than
+Gemini's (below).
 
 *Lipi* (ଲିପି, लिपि, লিপি) means "script, writing" in Odia, Hindi and Bengali.
 
@@ -123,6 +125,7 @@ nothing, because the vocabulary has no Odia words to use it with. Together they 
 from 9.70× English to **1.13×** with 16K new tokens (8.6× fewer tokens for the same text) and
 1.04× with 32K. The marks fix changes the ids of 18 other languages (their words are no
 longer cut at vowel signs) and lowers their token counts by at most 0.5% (Kashmiri in Perso-Arabic script: 0.46% fewer).
+It also changes Thai, which lipi-Indic below avoids.
 
 The 16K tokenizer is `results/m1/tokenizers/qwen25-odia-marks-vocab-16k.json`.
 
@@ -187,13 +190,110 @@ What they do not show, or show against the fix:
   byte); 20% English in the mix limits the damage but does not prevent it.
 - One run per arm, so differences of a few percent are within what a second seed could move.
 
+## lipi-Indic: every Indian language, against ChatGPT and Gemini
+
+M1 fixed one language. lipi-Indic applies the same two changes to Qwen 2.5's tokenizer once,
+for all 24 Indian languages in FLORES-200 (`scripts/extend_indic.py`):
+
+- The marks fix, but only for the Indian scripts' combining marks. Qwen's vocabulary
+  already holds 1,735 tokens that join letters with combining marks. Qwen's own
+  pre-tokenizer can never produce 1,667 of them, so their embeddings were never trained:
+  those rows sit almost exactly at the mean row (cosine 0.94, against 0.38 for a random
+  row). A fix allowing every mark would route Thai text into those dead rows, so lipi-Indic
+  leaves every other script's marks alone.
+- New merges, learned on the web text of FineWeb-2: 12–18 MB per language where there is
+  that much, and all of it for Awadhi and Santali (10.8 MB each), Magahi (4.1 MB) and
+  Kashmiri (1.3 and 1.8 MB): 22.8 million words, with every document that contains a
+  FLORES sentence left out. Hindi gets no more text than Odia, so the big languages do not
+  take all the new tokens. The new merges are confined to tokens that contain an Indian
+  script's bytes.
+
+Tokens for FLORES-200 devtest as a multiple of English, against the tokenizers behind
+ChatGPT and Gemini. GPT-4o, GPT-4.1, o3 and GPT-5 all use `o200k_base` (tiktoken). Google
+publishes no tokenizer for Gemini; third-party ports of it are reported to be the same
+262,144-entry SentencePiece model as Gemma 3's, so the "Gemini" column is Gemma 3's tokenizer
+(not checked against Google's `countTokens`):
+
+| tokenizer | vocabulary | speaker-weighted tax, 24 Indian languages |
+|---|---|---|
+| Qwen 2.5 / Qwen 3, as shipped | 151,665 | 5.28× |
+| GPT-4o / GPT-5 (`o200k_base`) | 200,019 | 1.92× |
+| Sarvam-1 (Indian, 10 languages) | 68,096 | 1.60× |
+| Gemini (Gemma 3's tokenizer) | 262,145 | 1.58× |
+| lipi-Indic 16K / 32K / 64K | 167,665 / 183,665 / 215,665 | 1.74× / 1.54× / 1.38× |
+| **lipi-Indic 96K** | **247,665** | **1.30×** |
+| lipi-Indic 128K | 279,665 | 1.26× |
+
+![lipi-Indic against GPT-4o and Gemini, per language](results/m1/indic.png)
+
+**With a smaller vocabulary than Gemini's, lipi-Indic 96K takes fewer tokens than both
+GPT-4o's and Gemini's tokenizers in 23 of the 24 languages.** The exception is Bengali, where
+Gemini's 1.21× beats lipi-Indic's 1.25×. The largest gaps are in the languages today's models
+serve worst:
+
+- Odia: 1.35×, against GPT-4o's 4.99× and Gemini's 3.51×.
+- Santali: 1.52×, against 13.70× and 5.25×.
+- Punjabi: 1.44×, against 2.62× and 2.69×.
+- Manipuri: 1.41×, against 3.07× and 2.51×.
+
+| language | speakers (M) | Qwen 2.5 | GPT-4o / GPT-5 | Gemini | **lipi-Indic 96K** | Sarvam-1 |
+|---|---|---|---|---|---|---|
+| Hindi | 528.35 | 4.42× | 1.57× | 1.31× | **1.27×** | 1.14× |
+| Bengali | 97.24 | 5.03× | 1.70× | 1.21× | 1.25× | 1.28× |
+| Marathi | 83.03 | 4.62× | 1.82× | 1.40× | **1.24×** | 1.08× |
+| Telugu | 81.13 | 6.99× | 1.93× | 1.78× | **1.33×** | 1.15× |
+| Tamil | 69.03 | 6.11× | 1.98× | 1.47× | **1.35×** | 1.16× |
+| Gujarati | 55.49 | 6.74× | 1.79× | 1.86× | **1.36×** | 1.20× |
+| Urdu | 50.77 | 3.15× | 1.65× | 1.52× | **1.38×** | 7.39× |
+| Kannada | 43.71 | 6.92× | 1.97× | 1.93× | **1.37×** | 1.22× |
+| Odia | 37.52 | 9.70× | 4.99× | 3.51× | **1.35×** | 1.46× |
+| Malayalam | 34.84 | 7.23× | 1.96× | 1.85× | **1.46×** | 1.36× |
+| Punjabi | 33.12 | 7.28× | 2.62× | 2.69× | **1.44×** | 1.39× |
+| Assamese | 15.31 | 5.39× | 1.99× | 2.01× | **1.28×** | 2.92× |
+| Maithili | 13.58 | 4.39× | 1.76× | 1.64× | **1.25×** | 1.48× |
+| Santali (Ol Chiki) | 7.37 | 8.92× | 13.70× | 5.25× | **1.52×** | 11.77× |
+| Kashmiri (Perso-Arabic) | 6.80 | 3.47× | 2.61× | 2.36× | **1.84×** | 7.27× |
+| Nepali | 2.93 | 4.42× | 1.61× | 1.53× | **1.16×** | 1.54× |
+| Sindhi (Perso-Arabic) | 2.77 | 2.85× | 1.71× | 2.02× | **1.30×** | 6.76× |
+| Manipuri (Bengali script) | 1.76 | 5.61× | 3.07× | 2.51× | **1.41×** | 2.64× |
+| Sanskrit | 0.02 | 4.51× | 2.09× | 1.77× | **1.32×** | 1.61× |
+| Bhojpuri | | 4.30× | 1.77× | 1.57× | **1.28×** | 1.40× |
+| Awadhi | | 4.30× | 1.71× | 1.47× | **1.26×** | 1.29× |
+| Kashmiri (Devanagari) | | 4.37× | 2.23× | 1.94× | **1.72×** | 1.95× |
+| Chhattisgarhi | | 4.21× | 1.73× | 1.49× | **1.28×** | 1.29× |
+| Magahi | | 4.19× | 1.72× | 1.48× | **1.28×** | 1.30× |
+
+(The census counts Bhojpuri, Awadhi, Chhattisgarhi and Magahi speakers under Hindi.)
+
+Read it with care:
+
+- **Sarvam-1 is better than lipi-Indic for the ten languages it was built for.** Examples:
+  Hindi 1.14×, Marathi 1.08×, Tamil 1.16×. It has a much smaller vocabulary (68K) spent
+  almost only on those languages. It fails on the rest: Urdu 7.39×, Sindhi 6.76×,
+  Santali 11.77×. lipi-Indic covers all 24 and keeps every other language Qwen already
+  handles.
+- **Other languages.** English, French, Spanish, Russian, Chinese, Japanese, Korean, Thai
+  and Hebrew keep exactly the ids Qwen gives them. Arabic and Persian change, because Urdu,
+  Kashmiri and Sindhi share their script and the new Urdu tokens fire on them too. Both get
+  cheaper: Arabic 1.63× → 1.54×, Persian 2.58× → 1.79×. Those tokens were learned on Urdu,
+  so a model trained only on Indian text would not yet know them in Arabic or Persian.
+- **These are token counts, not a trained model.** M1 trained Qwen 2.5 0.5B on the Odia-only
+  tokenizer. Training on lipi-Indic needs all 24 languages' text and is the next step.
+- **Token counts are not prices.** Every API sets its own price per token. A token count
+  says how much text fits in a context window, and how many steps a model takes to write it.
+  M2 times those steps.
+
+The 64K and 96K tokenizers are `results/m1/tokenizers/qwen25-indic-{64k,96k}.json`, with the
+measurements in `results/m1/indic.json`.
+
 ## Plan
 
 | | Milestone | State |
 |---|---|---|
 | M0 | Measure the token tax: 24 Indian languages × 15 tokenizers; tokens, letters broken, byte fragments, the pre-tokenizer's floor; charts | done |
 | M1 | Fix it in an open model: train Indic tokens, extend a small model's vocabulary (Qwen 2.5), initialise and train the new embeddings on Kaggle's 2× T4; measure tokens saved and quality (bits per byte, translation, comprehension) before and after | done (one run per arm) |
-| M2 | Speed and cost end to end: time to answer and tokens per second per language before and after, on a T4; speculative decoding; cost per 1,000 answers | |
+| M1b | lipi-Indic: one tokenizer for all 24 Indian languages, against GPT-4o / GPT-5 and Gemini | done (tokenizer); model training next |
+| M2 | Speed end to end: time to write the same sentences and how much text fits in the context window, per language, before and after, on a T4 (`scripts/speed_m2.py`) | scripts ready |
 | M3 | An interactive token-tax page (type a sentence, see each model's tokens and cost), all 22 scheduled languages with IN22, write-up | |
 
 ## Run it

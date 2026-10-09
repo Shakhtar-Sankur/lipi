@@ -62,3 +62,43 @@ def documents(code, name="train"):
     with open(path(code, f"{name}.jsonl"), encoding="utf-8") as f:
         for line in f:
             yield json.loads(line)["text"]
+
+
+def fetch_bytes(code, target_mb, name="tok"):
+    """About `target_mb` MB of documents (FLORES sentences excluded), from row groups spread
+    through the language's first file; all of it if the file is smaller. Written to `name`.jsonl."""
+    import pyarrow.parquet as pq
+    from huggingface_hub import HfFileSystem
+    f = HfFileSystem().open(ENGLISH if code == "eng_Latn" else REPO.format(code=code), "rb", block_size=8 * 2**20)
+    pf = pq.ParquetFile(f)
+    n = pf.metadata.num_row_groups
+    banned = [s for split in ("dev", "devtest") for s in flores.sentences(code, split) if len(s) >= 30]
+    order = _spread(n)
+    docs, size, dropped = [], 0, 0
+    for g in order:
+        if size >= target_mb * 2**20:
+            break
+        for text in pf.read_row_group(g, columns=["text"]).column("text").to_pylist():
+            if any(b in text for b in banned):
+                dropped += 1
+                continue
+            docs.append(text)
+            size += len(text.encode())
+    os.makedirs(os.path.dirname(path(code, "x")), exist_ok=True)
+    with open(path(code, f"{name}.jsonl"), "w", encoding="utf-8") as out:
+        for d in docs:
+            out.write(json.dumps({"text": d}, ensure_ascii=False) + "\n")
+    return {"documents": len(docs), "bytes": size, "dropped_flores_overlap": dropped, "row_groups_in_file": n}
+
+
+def _spread(n):
+    """0..n-1 in an order that keeps any prefix spread over the whole range (van der Corput)."""
+    seen, out, k = set(), [], 1
+    while len(out) < n:
+        for i in range(k):
+            g = int((2 * i + 1) * n / (2 * k))
+            if g not in seen:
+                seen.add(g)
+                out.append(g)
+        k *= 2
+    return out

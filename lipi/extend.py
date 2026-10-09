@@ -21,6 +21,7 @@ written as one private-use character, so the trainer sees the base pieces as its
 import collections
 import copy
 import json
+import re
 
 from tokenizers import Tokenizer, models, trainers
 
@@ -29,20 +30,28 @@ from .tokenizers import _BYTE_DEC as BYTE_DEC
 PUA = 0xF0000  # Supplementary Private Use Area-A: one character per base token
 
 
-def fix_marks(pattern):
-    """GPT-4-style pre-tokenizer pattern with combining marks allowed inside words."""
-    out = pattern.replace("\\p{L}\\p{N}", "\\p{L}\\p{M}\\p{N}").replace("]?\\p{L}+", "]?[\\p{L}\\p{M}]+")
+# Combining marks of the Indian scripts only (Devanagari to Sinhala, Ol Chiki, Meetei Mayek).
+# Qwen's vocabulary already holds about 1,700 tokens that join letters and marks of other
+# scripts (Thai, for one); its own pre-tokenizer never produces them, so their embeddings were
+# never trained. Allowing every mark (`\\p{M}`) would route Thai text into those rows.
+INDIC_MARKS = r"[\p{M}&&[\x{0900}-\x{0DFF}\x{1C50}-\x{1C7F}\x{ABC0}-\x{ABFF}]]"
+
+
+def fix_marks(pattern, marks="\\p{M}"):
+    """GPT-4-style pre-tokenizer pattern with combining marks (`marks`, a character class)
+    allowed inside words."""
+    out = pattern.replace("\\p{L}\\p{N}", "\\p{L}" + marks + "\\p{N}").replace("]?\\p{L}+", "]?[\\p{L}" + marks + "]+")
     if out == pattern:
         raise ValueError("pattern not recognised")
     return out
 
 
-def with_marks(cfg):
+def with_marks(cfg, marks="\\p{M}"):
     """A copy of a tokenizer.json whose Split pre-tokenizer keeps marks inside words."""
     cfg = copy.deepcopy(cfg)
     for p in cfg["pre_tokenizer"].get("pretokenizers", [cfg["pre_tokenizer"]]):
         if p["type"] == "Split":
-            p["pattern"]["Regex"] = fix_marks(p["pattern"]["Regex"])
+            p["pattern"]["Regex"] = fix_marks(p["pattern"]["Regex"], marks)
             return cfg
     raise ValueError("no Split pre-tokenizer")
 
@@ -127,3 +136,20 @@ def apply(cfg, merges):
 
 def odia(ch):
     return "଀" <= ch <= "୿"
+
+
+_INDIC_LEADS = re.compile(rb"\xe0[\xa4-\xb7]|\xe1\xb1|\xea\xaf|[\xd8-\xdb]")
+
+
+def indic(ch):
+    """A character of a script India writes its languages in: the Brahmic block U+0900-U+0DFF
+    (Devanagari to Malayalam), Ol Chiki, Meetei Mayek, and Arabic (Urdu, Kashmiri, Sindhi)."""
+    o = ord(ch)
+    return 0x0900 <= o <= 0x0DFF or 0x1C50 <= o <= 0x1C7F or 0xABC0 <= o <= 0xABFF or 0x0600 <= o <= 0x06FF
+
+
+def indic_bytes(token):
+    """Whether a byte-level token contains the start of a character in those scripts. Their
+    lead bytes (E0 A4-B7, E1 B1, EA AF, D8-DB) occur in no other script's UTF-8 except Arabic's,
+    which shares Urdu's block: Arabic and Persian text can be affected, nothing else."""
+    return bool(_INDIC_LEADS.search(bytes(BYTE_DEC[c] for c in token)))

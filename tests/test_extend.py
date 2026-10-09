@@ -63,3 +63,30 @@ def test_confine_drops_merges_that_other_scripts_could_use():
     merges = [("Ġ", lead), (lead, odia_second), ("Ġ", lead + odia_second)]
     kept = extend.confine(merges, vocab, extend.odia_bytes)
     assert kept == [(lead, odia_second), ("Ġ", lead + odia_second)]
+
+
+def test_indic_marks_fix_leaves_thai_alone():
+    base, fixed = tok(QWEN), extend.with_marks(tok(QWEN), extend.INDIC_MARKS)
+    assert len(pieces(fixed, "କହିଛନ୍ତି")) == 1
+    assert len(pieces(fixed, "नमस्ते ᱥᱟᱱᱛᱟᱲᱤ")) == 2
+    for text in ("น้ำตาล อย่างไร", "مَدْرَسَة", "We now have 4-month-old mice. It's 3:45 p.m."):
+        assert pieces(base, text) == pieces(fixed, text)
+    assert len(pieces(extend.with_marks(tok(QWEN)), "น้ำตาล")) == 1      # the unscoped fix would join it
+
+
+def test_indic_bytes_marks_every_indian_script_and_nothing_else():
+    def bl(text):
+        enc = {b: c for c, b in tokenizers._BYTE_DEC.items()}
+        return "".join(enc[b] for b in text.encode())
+    for word in ("नमस्ते", "বাংলা", "ਪੰਜਾਬੀ", "ગુજરાતી", "ଓଡ଼ିଆ", "தமிழ்", "తెలుగు", "ಕನ್ನಡ", "മലയാളം", "සිංහල", "ᱥᱟᱱᱛᱟᱲᱤ", "ꯃꯤꯇꯩ", "اردو"):
+        assert extend.indic_bytes(bl(word)) and all(extend.indic(c) for c in word if c.isalpha())
+    for word in ("hello", "ไทย", "русский", "中文", "日本語", "한국어", "עברית", "é"):
+        assert not extend.indic_bytes(bl(word)) and not any(extend.indic(c) for c in word)
+
+
+def test_spread_is_a_permutation_whose_prefixes_cover_the_range():
+    from lipi.corpus import _spread
+    for n in (1, 2, 3, 7, 16, 100):
+        assert sorted(_spread(n)) == list(range(n))
+    order = _spread(100)
+    assert order[0] == 50 and max(order[:4]) >= 75 and min(order[:4]) <= 25
