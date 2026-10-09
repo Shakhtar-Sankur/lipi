@@ -85,6 +85,10 @@ done
 wait
 for f in runs/eval-*.log; do grep -q '"name"' $f || { echo "== $f failed:"; tail -20 $f; }; done
 
+if [ -d /kaggle/working ]; then   # keep the numbers after the session ends (Output tab)
+  mkdir -p /kaggle/working/lipi-m1 && cp runs/evals.jsonl runs/*.log /kaggle/working/lipi-m1/
+  for arm in $ARMS; do cp runs/$arm/train.json /kaggle/working/lipi-m1/train-$arm.json; done
+fi
 echo "== summary"
 python scripts/summarize_m1.py runs
 echo "== done: copy from '== lipi M1' to here and send it back"
