@@ -10,7 +10,12 @@ For each (tokenizer, language) over the same sentences:
   sees them whole;
 - byte fragments: the share of tokens that are not even whole characters (a piece of a
   character's UTF-8 encoding);
-- unknown tokens: text the tokenizer cannot represent at all (<unk>).
+- unknown tokens: text the tokenizer cannot represent at all (<unk>);
+- the floor: how many pieces the pre-tokenizer cuts the text into before the vocabulary is
+  consulted. No vocabulary, however large, can encode the text in fewer tokens. The regular
+  expression in GPT-4's, Llama 3's and Qwen's pre-tokenizers matches letters (\\p{L}) but not
+  combining marks (\\p{M}), which is what Indian vowel signs and the virama are, so it cuts
+  a word such as କହିଛନ୍ତି at every vowel sign: four pieces before BPE starts.
 
 The byte measures need each token's bytes to concatenate back to the text exactly, allowing for
 a leading space (SentencePiece) and Unicode normalisation (Qwen applies NFC, NLLB NFKC-style
@@ -33,6 +38,9 @@ def sentence(tok, text, ids):
     r = {"tokens": len(ids), "letters": len(letters(text)), "chars": len(text),
          "bytes": len(text.encode()), "words": len(text.split()),
          "unk": sum(1 for i in ids if tok.is_unk(i))}
+    floor = tok.floor(text)
+    if floor is not None:
+        r["floor"] = floor
     pieces = tok.pieces(ids)
     if pieces is None or any(p is None for p in pieces):
         return r

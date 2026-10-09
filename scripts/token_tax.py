@@ -39,6 +39,8 @@ def derive(raw):
                    "tokens_per_letter": round(c["tokens"] / c["letters"], 3),
                    "chars_per_token": round(c["chars"] / c["tokens"], 3),
                    "unk_tokens": c["unk"], "exact_sentences": c["exact"]}
+            if "floor" in c:
+                row["floor_tax"] = round(c["floor"] / eng, 3)
             if c["exact"]:
                 row["broken_letters"] = round(c["broken"] / c["exact_letters"], 4)
                 row["byte_fragments"] = round(c["fragments"] / c["exact_tokens"], 4)

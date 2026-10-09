@@ -27,6 +27,16 @@ tokenizer and divided by the count for English (`results/m0/token_tax.csv`):
   (Sarvam AI) ship Mistral's Tekken tokenizer: Krutrim-2's tokenizer file is byte-identical to
   Mistral NeMo's, and Sarvam-M's gives the same token counts in every language. Odia costs **12.9×**
   English there, **7.2×** Hindi; a single letter (ର୍ତ୍ତ) takes 15 tokens, one per byte.
+- **There are two different causes, and some tokenizers have both.** Before a tokenizer uses
+  its vocabulary, a regular expression cuts the text into pieces, and no token can span two
+  pieces. The expression in GPT-4's, Llama 3's and Qwen's tokenizers matches letters
+  (`\p{L}`) but not combining marks (`\p{M}`), and every Indian vowel sign and virama is a
+  combining mark: କହିଛନ୍ତି ("has said") is cut into କହ · ିଛନ · ୍ତ · ି before the vocabulary
+  is consulted. However large their vocabulary, these tokenizers cannot write Odia in fewer
+  than **2.33×** the tokens of English, Hindi in fewer than 2.37×, Tamil in fewer than
+  2.66×. GPT-4o, Llama 4, DeepSeek-V3 and Mistral's Tekken match marks as part of words
+  (their floor for Odia is 0.84–0.85× English), so their tax is the other cause: a vocabulary
+  with few Odia tokens. Tekken shows it in pure form: a floor of 0.84× and a tax of 12.9×.
 - **Santali, in its own Ol Chiki script, is the most expensive language measured**: 13.7× on
   GPT-4o (worse than GPT-4's 12.7×), 12.4× on Mistral, 11.8× even on Sarvam-1. 7.4 million
   people speak it.
@@ -61,6 +71,9 @@ tokenizer and divided by the count for English (`results/m0/token_tax.csv`):
   window all scale with it.
 - **Letters**: extended grapheme clusters (Unicode `\X`), which keep a conjunct such as ସ୍ତ୍ରୀ
   together as one letter, the way a reader sees it.
+- **Floor**: the number of pieces the pre-tokenizer's regular expression cuts the text into
+  (`Tokenizer.floor`), the fewest tokens any vocabulary could reach; reported for the
+  byte-level and tiktoken tokenizers, whose pre-tokenizers do the cutting.
 - **Broken letters / byte fragments**: from the exact bytes of every token, checked to
   concatenate back to the sentence (allowing for SentencePiece's leading space and the
   Unicode normalisation Qwen and NLLB apply). Every tokenizer passes on every sentence except
@@ -86,7 +99,7 @@ tokenizer and divided by the count for English (`results/m0/token_tax.csv`):
 
 | | Milestone | State |
 |---|---|---|
-| M0 | Measure the token tax: 24 Indian languages × 15 tokenizers; tokens, letters broken, byte fragments; charts | done |
+| M0 | Measure the token tax: 24 Indian languages × 15 tokenizers; tokens, letters broken, byte fragments, the pre-tokenizer's floor; charts | done |
 | M1 | Fix it in an open model: train Indic tokens, extend a small model's vocabulary (Qwen 2.5), initialise and train the new embeddings on Kaggle's 2× T4; measure tokens saved and quality (bits per byte, translation, comprehension) before and after | |
 | M2 | Speed and cost end to end: time to answer and tokens per second per language before and after, on a T4; speculative decoding; cost per 1,000 answers | |
 | M3 | An interactive token-tax page (type a sentence, see each model's tokens and cost), all 22 scheduled languages with IN22, write-up | |

@@ -94,6 +94,7 @@ class Tokenizer:
     vocab_size: int
     _impl: object = field(repr=False)
     _unk_id: int = None
+    _pat: object = field(default=None, repr=False)
 
     def encode(self, texts):
         """Token ids for each text, with no special tokens added."""
@@ -121,6 +122,18 @@ class Tokenizer:
                 out.append(bytes([int(m.group(1), 16)]) if m else t.replace("▁", " ").encode())
         return out
 
+    def floor(self, text):
+        """How many pieces the pre-tokenizer splits the text into before the vocabulary is used:
+        no tokenizer can encode the text in fewer tokens, however large its vocabulary. None
+        for SentencePiece-style tokenizers, whose pieces are only whitespace-separated words."""
+        if self.style == "tiktoken":
+            return len(self._pat.findall(text))
+        if self.style != "bytelevel" or self._impl.pre_tokenizer is None:
+            return None
+        if self._impl.normalizer is not None:
+            text = self._impl.normalizer.normalize_str(text)
+        return len(self._impl.pre_tokenizer.pre_tokenize_str(text))
+
     def is_unk(self, i):
         return self._unk_id is not None and i == self._unk_id
 
@@ -133,7 +146,8 @@ def load(key):
     if spec.kind == "tiktoken":
         import tiktoken
         enc = tiktoken.get_encoding(spec.source)
-        return Tokenizer(spec, "tiktoken", enc.n_vocab, enc)
+        import regex
+        return Tokenizer(spec, "tiktoken", enc.n_vocab, enc, _pat=regex.compile(enc._pat_str))
     from tokenizers import Tokenizer as HF
     path = _download(f"https://huggingface.co/{spec.source}/resolve/{spec.revision}/tokenizer.json",
                      os.path.join(CACHE, "tokenizers", key, "tokenizer.json"))
