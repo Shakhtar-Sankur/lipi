@@ -112,12 +112,12 @@ def main():
     emb = model.get_input_embeddings().weight
     others = [p for p in model.parameters() if p is not emb]
     opt = torch.optim.AdamW([{"params": [emb], "lr": a.embedding_lr}, {"params": others, "lr": a.lr}],
-                            betas=(0.9, 0.95), weight_decay=0.0)
+                            betas=(0.9, 0.95), weight_decay=0.0, foreach=False)   # no parameter-sized temporaries
     peaks = [a.embedding_lr, a.lr]
     warm = max(1, steps // 20)
-    ddp = model
+    ddp = LossModel(model)
     if distributed:   # gradient_as_bucket_view: the gradients live in DDP's buckets, not in a second copy
-        ddp = torch.nn.parallel.DistributedDataParallel(model, device_ids=[torch.device(device)] if device != "cpu" else None,
+        ddp = torch.nn.parallel.DistributedDataParallel(ddp, device_ids=[torch.device(device)] if device != "cpu" else None,
                                                         gradient_as_bucket_view=True)
     scaler = torch.amp.GradScaler("cuda", enabled=device != "cpu")
     log, t0, seen = [], time.time(), 0
@@ -135,7 +135,7 @@ def main():
             sync = k == a.accum - 1 or not distributed
             ctx = ddp.no_sync() if (distributed and not sync) else torch.enable_grad()
             with ctx, torch.autocast("cuda", dtype=torch.float16, enabled=device != "cpu"):
-                loss = _loss(ddp, batch)
+                loss = ddp(batch)
                 scaler.scale(loss / a.accum).backward()
             total += loss.item() / a.accum
         scaler.unscale_(opt)
@@ -162,10 +162,30 @@ def main():
         dist.destroy_process_group()
 
 
-def _loss(model, batch):
-    """Mean next-token cross-entropy over a packed block."""
-    logits = model(input_ids=batch[:, :-1]).logits
-    return torch.nn.functional.cross_entropy(logits.float().reshape(-1, logits.shape[-1]), batch[:, 1:].reshape(-1))
+class LossModel(torch.nn.Module):
+    """Mean next-token cross-entropy over a packed block, without ever holding the whole
+    (positions x vocabulary) logit matrix: the output layer and the loss run on chunks of
+    positions, each recomputed in the backward pass. On a T4 the full fp32 logits of one
+    1,024-token block over a 152K-168K vocabulary (0.6 GB, and as much again for their
+    gradient) are what overflows memory next to the weights and AdamW state."""
+
+    def __init__(self, model, chunk=256):
+        super().__init__()
+        self.model, self.chunk = model, chunk
+
+    def forward(self, batch):
+        hidden = self.model.get_decoder()(input_ids=batch[:, :-1]).last_hidden_state
+        weight = self.model.get_output_embeddings().weight
+        h, y = hidden.reshape(-1, hidden.shape[-1]), batch[:, 1:].reshape(-1)
+        total = hidden.new_zeros((), dtype=torch.float32)
+        for k in range(0, h.shape[0], self.chunk):
+            total = total + torch.utils.checkpoint.checkpoint(_chunk_loss, h[k:k + self.chunk], weight, y[k:k + self.chunk],
+                                                              use_reentrant=False)
+        return total / h.shape[0]
+
+
+def _chunk_loss(h, weight, y):
+    return torch.nn.functional.cross_entropy((h @ weight.t()).float(), y, reduction="sum")
 
 
 if __name__ == "__main__":

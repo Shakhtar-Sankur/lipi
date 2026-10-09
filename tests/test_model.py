@@ -46,3 +46,22 @@ def test_continuation_logprobs_match_full_logits():
         logp = torch.log_softmax(m(input_ids=torch.tensor([p + c])).logits[0].float(), -1)
         want = sum(logp[len(p) - 1 + k, c[k]].item() for k in range(len(c)))
         assert abs(g - want) < 1e-4
+
+
+def test_chunked_training_loss_matches_the_plain_loss_and_gradients():
+    import importlib.util
+    import os
+    spec = importlib.util.spec_from_file_location("train_m1", os.path.join(os.path.dirname(__file__), "..", "scripts", "train_m1.py"))
+    train = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(train)
+    m = tiny(500)
+    batch = torch.randint(0, 500, (2, 40))
+    chunked = train.LossModel(m, chunk=7)(batch)
+    chunked.backward()
+    g_chunked = m.get_input_embeddings().weight.grad.clone()
+    m.zero_grad()
+    logits = m(input_ids=batch[:, :-1]).logits
+    plain = torch.nn.functional.cross_entropy(logits.reshape(-1, 500), batch[:, 1:].reshape(-1))
+    plain.backward()
+    assert abs(chunked.item() - plain.item()) < 1e-5
+    assert torch.allclose(g_chunked, m.get_input_embeddings().weight.grad, atol=1e-6)
