@@ -95,6 +95,7 @@ def main():
     tok = Tokenizer.from_str(json.dumps(cfg))
     model = AutoModelForCausalLM.from_pretrained(a.model, dtype=torch.float32)
     new_rows = 0
+    n_base = model.get_input_embeddings().weight.shape[0]
     if a.tokenizer == "extended":
         new_rows = len(M.extend_embeddings(model, base_cfg, cfg))
     model.config.use_cache = False
@@ -109,9 +110,13 @@ def main():
     steps = len(blocks) // per_step
     if a.max_steps:
         steps = min(steps, a.max_steps)
-    emb = model.get_input_embeddings().weight
-    others = [p for p in model.parameters() if p is not emb]
-    groups = [{"params": [emb], "lr": a.embedding_lr}, {"params": others, "lr": a.lr}]
+    lm = LossModel(model, n_base)
+    # the new tokens' rows learn fast; every original weight, the original embedding rows (which
+    # are also the output layer) included, at the ordinary rate: a high rate on all 152K rows
+    # moved every output score at once and wrecked the model in one step (smoke run, arm A)
+    groups = [{"params": [p for p in lm.parameters() if p is not lm.new], "lr": a.lr}]
+    if lm.new is not None:
+        groups.append({"params": [lm.new], "lr": a.embedding_lr})
     adam = dict(betas=(0.9, 0.95), weight_decay=0.0, foreach=False)   # foreach=False: no parameter-sized temporaries
     if distributed:
         # ZeRO-1: each GPU keeps AdamW's state for half the parameters (2 GB instead of 4 GB here)
@@ -119,11 +124,11 @@ def main():
         opt = ZeroRedundancyOptimizer(groups, optimizer_class=torch.optim.AdamW, **adam)
     else:
         opt = torch.optim.AdamW(groups, **adam)
-    peaks = [a.embedding_lr, a.lr]
-    warm = max(1, steps // 20)
-    ddp = LossModel(model)
+    peaks = [g["lr"] for g in groups]
+    warm = max(1, min(steps // 2, max(10, steps // 20)))
+    ddp = lm
     if distributed:   # gradient_as_bucket_view: the gradients live in DDP's buckets, not in a second copy
-        ddp = torch.nn.parallel.DistributedDataParallel(ddp, device_ids=[torch.device(device)] if device != "cpu" else None,
+        ddp = torch.nn.parallel.DistributedDataParallel(lm, device_ids=[torch.device(device)] if device != "cpu" else None,
                                                         gradient_as_bucket_view=True)
     scaler = torch.amp.GradScaler("cuda", enabled=device != "cpu")
     log, t0, seen = [], time.time(), 0
@@ -161,13 +166,14 @@ def main():
             print(json.dumps(rec), flush=True)
     agree = True
     if distributed:   # every rank must hold the same weights (ZeRO-1 broadcasts each shard after its step)
-        check = torch.stack([p.detach().double().sum() for p in model.parameters()]).to(device)
+        check = torch.stack([p.detach().double().sum() for p in lm.parameters()]).to(device)
         other = [torch.zeros_like(check) for _ in range(world)]
         dist.all_gather(other, check)
         agree = all(torch.equal(other[0], o) for o in other)
     if rank == 0:
         print(json.dumps({"phase": "done", "ranks_agree": agree, "seconds": round(time.time() - t0, 1)}), flush=True)
         os.makedirs(a.out, exist_ok=True)
+        lm.merge()
         model.to(torch.float16).save_pretrained(a.out, safe_serialization=True)
         json.dump(cfg, open(os.path.join(a.out, "tokenizer.json"), "w"), ensure_ascii=False)
         json.dump({"args": vars(a), **data_info, "steps": steps, "tokens_trained": seen, "seconds": round(time.time() - t0, 1),
@@ -177,25 +183,48 @@ def main():
 
 
 class LossModel(torch.nn.Module):
-    """Mean next-token cross-entropy over a packed block, without ever holding the whole
-    (positions x vocabulary) logit matrix: the output layer and the loss run on chunks of
-    positions, each recomputed in the backward pass. On a T4 the full fp32 logits of one
-    1,024-token block over a 152K-168K vocabulary (0.6 GB, and as much again for their
-    gradient) are what overflows memory next to the weights and AdamW state."""
+    """Mean next-token cross-entropy over a packed block.
 
-    def __init__(self, model, chunk=256):
+    The (tied) embedding matrix is held as two parameters, the model's original rows and the
+    new tokens' rows (`new`, None for Qwen's own tokenizer), so the two can learn at different
+    rates; `merge` writes them back into the model as one matrix.
+
+    The whole (positions x vocabulary) logit matrix is never held: the output layer and the
+    loss run on chunks of positions, each recomputed in the backward pass. On a T4 the full
+    fp32 logits of one 1,024-token block over a 152K-168K vocabulary (0.6 GB, and as much
+    again for their gradient) are what overflows memory next to the weights and AdamW state."""
+
+    def __init__(self, model, n_base, chunk=256):
         super().__init__()
+        assert model.config.tie_word_embeddings
+        w = model.get_input_embeddings().weight.data
+        base = torch.nn.Parameter(w[:n_base].clone())
+        self.new = torch.nn.Parameter(w[n_base:].clone()) if w.shape[0] > n_base else None
+        model.get_input_embeddings().weight = base
+        model.get_output_embeddings().weight = base
         self.model, self.chunk = model, chunk
 
+    def weight(self):
+        base = self.model.get_input_embeddings().weight
+        return base if self.new is None else torch.cat([base, self.new])
+
     def forward(self, batch):
-        hidden = self.model.get_decoder()(input_ids=batch[:, :-1]).last_hidden_state
-        weight = self.model.get_output_embeddings().weight
+        weight = self.weight()
+        x = torch.nn.functional.embedding(batch[:, :-1], weight)
+        hidden = self.model.get_decoder()(inputs_embeds=x).last_hidden_state
         h, y = hidden.reshape(-1, hidden.shape[-1]), batch[:, 1:].reshape(-1)
         total = hidden.new_zeros((), dtype=torch.float32)
         for k in range(0, h.shape[0], self.chunk):
             total = total + torch.utils.checkpoint.checkpoint(_chunk_loss, h[k:k + self.chunk], weight, y[k:k + self.chunk],
                                                               use_reentrant=False)
         return total / h.shape[0]
+
+    @torch.no_grad()
+    def merge(self):
+        full = torch.nn.Parameter(self.weight().detach().clone())
+        self.model.get_input_embeddings().weight = full
+        self.model.get_output_embeddings().weight = full
+        self.model.config.vocab_size = full.shape[0]
 
 
 def _chunk_loss(h, weight, y):
