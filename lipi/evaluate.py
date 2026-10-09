@@ -120,7 +120,7 @@ def translate(model, tok, sources, refs, shots, src, tgt, start_id, batch=8, dev
             outputs[i] = tok.decode(new[:cut + 1]).split("\n")[0].strip()
     chrf = sacrebleu.corpus_chrf(outputs, [refs], word_order=2).score
     return {"chrf++": round(chrf, 2), "sentences": len(sources), "tokens_generated": generated,
-            "seconds": round(seconds, 1), "outputs": outputs[:5]}
+            "seconds": round(seconds, 1), "outputs": outputs}
 
 
 def bits_per_byte(model, tok, texts, start_id, batch=8, device="cpu"):

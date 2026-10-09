@@ -1,0 +1,67 @@
+Kaggle "GPU T4 x2", lipi bf8660a, RUN=full (scripts/kaggle_m1.sh). Download progress removed; training lines every 100 steps.
+
+ory_Orya {'train': {'documents': 59963, 'dropped_flores_overlap': 0, 'bytes': 245477119}, 'heldout': {'documents': 3998, 'dropped_flores_overlap': 0, 'bytes': 17241823}}
+eng_Latn {'train': {'documents': 15921, 'dropped_flores_overlap': 0, 'bytes': 54865147}, 'heldout': {'documents': 1584, 'dropped_flores_overlap': 0, 'bytes': 6065610}}
+== train A
+{"phase": "data", "tokenizer": "qwen", "new_rows": 0, "bytes": {"ory_Orya": 25168231, "eng_Latn": 6294199}, "tokens": {"ory_Orya": 18535734, "eng_Latn": 1379108}, "blocks_per_rank": 9714, "steps": 1214, "tokens_per_step": 16384}
+{"step": 0, "loss": 1.4016, "tokens": 16384, "elapsed": 5.7, "tokens_per_s": 2865, "progress": 0.0, "max_memory_gb": 10.76, "memory_gb": 5.54}
+{"step": 100, "loss": 1.0241, "tokens": 1654784, "elapsed": 510.7, "tokens_per_s": 3240, "progress": 0.082, "max_memory_gb": 10.76, "memory_gb": 5.54}
+{"step": 200, "loss": 0.935, "tokens": 3293184, "elapsed": 1022.9, "tokens_per_s": 3220, "progress": 0.165, "max_memory_gb": 10.76, "memory_gb": 5.54}
+{"step": 300, "loss": 0.7203, "tokens": 4931584, "elapsed": 1535.1, "tokens_per_s": 3213, "progress": 0.247, "max_memory_gb": 10.76, "memory_gb": 5.54}
+{"step": 400, "loss": 0.6899, "tokens": 6569984, "elapsed": 2047.0, "tokens_per_s": 3210, "progress": 0.329, "max_memory_gb": 10.76, "memory_gb": 5.54}
+{"step": 500, "loss": 0.694, "tokens": 8208384, "elapsed": 2558.8, "tokens_per_s": 3208, "progress": 0.412, "max_memory_gb": 10.76, "memory_gb": 5.54}
+{"step": 600, "loss": 0.9141, "tokens": 9846784, "elapsed": 3070.8, "tokens_per_s": 3207, "progress": 0.494, "max_memory_gb": 10.76, "memory_gb": 5.54}
+{"step": 700, "loss": 0.7367, "tokens": 11485184, "elapsed": 3582.7, "tokens_per_s": 3206, "progress": 0.577, "max_memory_gb": 10.76, "memory_gb": 5.54}
+{"step": 800, "loss": 0.6649, "tokens": 13123584, "elapsed": 4094.6, "tokens_per_s": 3205, "progress": 0.659, "max_memory_gb": 10.76, "memory_gb": 5.54}
+{"step": 900, "loss": 0.5421, "tokens": 14761984, "elapsed": 4606.8, "tokens_per_s": 3204, "progress": 0.741, "max_memory_gb": 10.76, "memory_gb": 5.54}
+{"step": 1000, "loss": 0.6139, "tokens": 16400384, "elapsed": 5118.8, "tokens_per_s": 3204, "progress": 0.824, "max_memory_gb": 10.76, "memory_gb": 5.54}
+{"step": 1100, "loss": 0.6309, "tokens": 18038784, "elapsed": 5630.9, "tokens_per_s": 3204, "progress": 0.906, "max_memory_gb": 10.76, "memory_gb": 5.54}
+{"step": 1200, "loss": 1.2627, "tokens": 19677184, "elapsed": 6142.9, "tokens_per_s": 3203, "progress": 0.988, "max_memory_gb": 10.76, "memory_gb": 5.54}
+{"step": 1213, "loss": 0.529, "tokens": 19890176, "elapsed": 6209.5, "tokens_per_s": 3203, "progress": 0.999, "max_memory_gb": 10.76, "memory_gb": 5.54}
+{"phase": "done", "ranks_agree": true, "seconds": 6209.8}
+== train B
+{"phase": "data", "tokenizer": "extended", "new_rows": 16000, "bytes": {"ory_Orya": 25168231, "eng_Latn": 6294199}, "tokens": {"ory_Orya": 2173559, "eng_Latn": 1379108}, "blocks_per_rank": 1733, "steps": 216, "tokens_per_step": 16384}
+{"step": 0, "loss": 6.6958, "tokens": 16384, "elapsed": 5.9, "tokens_per_s": 2799, "progress": 0.0, "max_memory_gb": 11.64, "memory_gb": 3.8}
+{"step": 100, "loss": 5.1174, "tokens": 1654784, "elapsed": 539.8, "tokens_per_s": 3065, "progress": 0.463, "max_memory_gb": 11.64, "memory_gb": 5.64}
+{"step": 200, "loss": 4.108, "tokens": 3293184, "elapsed": 1074.0, "tokens_per_s": 3066, "progress": 0.926, "max_memory_gb": 11.64, "memory_gb": 5.64}
+{"step": 215, "loss": 3.8161, "tokens": 3538944, "elapsed": 1154.0, "tokens_per_s": 3067, "progress": 0.995, "max_memory_gb": 11.64, "memory_gb": 5.64}
+{"phase": "done", "ranks_agree": true, "seconds": 1154.3}
+== train C
+{"phase": "data", "tokenizer": "extended", "new_rows": 16000, "bytes": {"ory_Orya": 141870177, "eng_Latn": 35466937}, "tokens": {"ory_Orya": 12143747, "eng_Latn": 7746734}, "blocks_per_rank": 9702, "steps": 1212, "tokens_per_step": 16384}
+{"step": 0, "loss": 7.5617, "tokens": 16384, "elapsed": 6.0, "tokens_per_s": 2736, "progress": 0.0, "max_memory_gb": 11.64, "memory_gb": 5.64}
+{"step": 100, "loss": 5.3265, "tokens": 1654784, "elapsed": 540.0, "tokens_per_s": 3064, "progress": 0.083, "max_memory_gb": 11.64, "memory_gb": 5.64}
+{"step": 200, "loss": 4.3798, "tokens": 3293184, "elapsed": 1074.3, "tokens_per_s": 3065, "progress": 0.165, "max_memory_gb": 11.64, "memory_gb": 5.64}
+{"step": 300, "loss": 4.0581, "tokens": 4931584, "elapsed": 1608.0, "tokens_per_s": 3067, "progress": 0.248, "max_memory_gb": 11.64, "memory_gb": 5.64}
+{"step": 400, "loss": 4.0776, "tokens": 6569984, "elapsed": 2142.2, "tokens_per_s": 3067, "progress": 0.33, "max_memory_gb": 11.64, "memory_gb": 5.64}
+{"step": 500, "loss": 3.6723, "tokens": 8208384, "elapsed": 2676.6, "tokens_per_s": 3067, "progress": 0.413, "max_memory_gb": 11.64, "memory_gb": 5.64}
+{"step": 600, "loss": 3.9896, "tokens": 9846784, "elapsed": 3210.7, "tokens_per_s": 3067, "progress": 0.495, "max_memory_gb": 11.64, "memory_gb": 5.64}
+{"step": 700, "loss": 3.9884, "tokens": 11485184, "elapsed": 3744.8, "tokens_per_s": 3067, "progress": 0.578, "max_memory_gb": 11.64, "memory_gb": 5.64}
+{"step": 800, "loss": 3.7669, "tokens": 13123584, "elapsed": 4278.8, "tokens_per_s": 3067, "progress": 0.66, "max_memory_gb": 11.64, "memory_gb": 5.64}
+{"step": 900, "loss": 3.1566, "tokens": 14761984, "elapsed": 4813.2, "tokens_per_s": 3067, "progress": 0.743, "max_memory_gb": 11.64, "memory_gb": 5.64}
+{"step": 1000, "loss": 3.2117, "tokens": 16400384, "elapsed": 5347.9, "tokens_per_s": 3067, "progress": 0.825, "max_memory_gb": 11.64, "memory_gb": 5.64}
+{"step": 1100, "loss": 4.0024, "tokens": 18038784, "elapsed": 5882.3, "tokens_per_s": 3067, "progress": 0.908, "max_memory_gb": 11.64, "memory_gb": 5.64}
+{"step": 1200, "loss": 3.5308, "tokens": 19677184, "elapsed": 6416.9, "tokens_per_s": 3066, "progress": 0.99, "max_memory_gb": 11.64, "memory_gb": 5.64}
+{"step": 1211, "loss": 3.6577, "tokens": 19857408, "elapsed": 6475.7, "tokens_per_s": 3066, "progress": 0.999, "max_memory_gb": 11.64, "memory_gb": 5.64}
+{"phase": "done", "ranks_agree": true, "seconds": 6476.0}
+== summary
+train A: 19,890,176 tokens, 1214 steps, 103.5 min, text 24.0 MB Odia + 6.0 MB English, final loss 0.529
+train B: 3,538,944 tokens, 216 steps, 19.3 min, text 24.0 MB Odia + 6.0 MB English, final loss 3.8161
+train C: 19,857,408 tokens, 1212 steps, 108.0 min, text 135.3 MB Odia + 33.8 MB English, final loss 3.6577
+                                      base      init         A         B         C
+Odia bits/byte, FLORES              1.4436    1.1833    0.7514     0.782     0.674
+Odia bits/byte, web (held out)      1.1295    1.1028    0.5749    0.6078    0.4609
+English bits/byte, FLORES           1.0757    1.2047    1.1638    1.1062     1.127
+Odia tokens, FLORES                 267893     31211    267893     31211     31211
+Belebele Odia                         30.6      23.0      29.2      31.3      30.1
+Belebele English                      38.6      37.9      36.7      39.0      37.2
+Belebele Odia seconds                381.5      45.6     384.7      45.6      43.7
+en->or chrF++                         8.71       2.6     10.76       3.7      8.29
+en->or tokens generated              62311     13440    103085      8859      7070
+en->or seconds                       524.0      58.4     531.6      57.7      56.5
+or->en chrF++                        16.02     11.28      0.03     15.38      24.8
+or->en seconds                        75.4      28.7      86.8      51.9      46.9
+base en->or sample: ପାଇଲଟ ସ୍ଥାନୀୟ ମିଡିଆ ରିପୋର୍ଟ କରିଛନ୍ତି ଯେ ବିମାନବନ୍ଦରରେ ପ୍ରତ୍ୟୁତର ଦେଉଥିବା ସମୟରେ ଅଗ୍ନିଶମ ଗାଡି ଓଲଟିଗଲା।
+init en->or sample: ଏବାରିକାରିକାରିକାରିକାରିକାରିକ�
+A en->or sample: କରୋନା ମହାମାରୀ ପରେ ବିମାନବନ୍ଦରରେ ପ୍ରତ୍ୟୁତର ଦେଉଥିବା ସମୟରେ ଅଗ୍ନିଶମ ଗାଡି ଓଲଟିଗଲା। ଏହି ଗାଡିରେ ପ୍ରତ୍ୟୁତର ଦେଉଥିବା ବେଳେ ବିମାନବନ୍ଦରରେ ପ୍ରତ୍ୟୁତର ଦେଉଥିବା ବେଳେ ଅଗ୍ନିଶମ ଗାଡି
+B en->or sample: "We now have 4-month-old mice that are non-diabetic that used to be diabetic," he added.
+C en->or sample: "We now have 4-month-old mice that are non-diabetic that used to be diabetic," he added.

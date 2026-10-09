@@ -38,6 +38,11 @@ for label, get in rows:
     print(f"{label:32s}" + "".join(f"{get(evals[n]):>10}" for n in order))
 for n in order:
     print(f"{n} en->or sample: {evals[n]['translate_eng_ory']['outputs'][0][:160]}")
+for n in order:   # how often the output is in the target script at all
+    for k, script in (("translate_eng_ory", lambda c: "\u0b00" <= c <= "\u0b7f"), ("translate_ory_eng", lambda c: c.isascii() and c.isalpha())):
+        outs = evals[n][k]["outputs"]
+        ok = sum(1 for o in outs if sum(map(script, o)) > 0.5 * max(1, sum(c.isalpha() for c in o)))
+        print(f"{n} {k}: {ok} of {len(outs)} outputs mostly in the target script")
 for r in evals.values():
     for k in ("translate_eng_ory", "translate_ory_eng"):
         r[k].pop("outputs", None)
