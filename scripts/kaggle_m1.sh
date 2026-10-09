@@ -58,12 +58,12 @@ grep -h '"phase"' runs/eval-base.log runs/eval-init.log || true
 train() {  # train NAME ARGS...
   echo "== train $1"
   local name=$1; shift
-  torchrun --nproc_per_node $NGPU scripts/train_m1.py --out runs/$name "$@" 2>&1 | tee runs/train-$name.log | \
+  PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True torchrun --nproc_per_node $NGPU scripts/train_m1.py --out runs/$name "$@" 2>&1 | tee runs/train-$name.log | \
     grep --line-buffered -E '^\{' | python -c "import sys,json
 for l in sys.stdin:
     r=json.loads(l)
     if 'phase' in r or r['step'] % 100 == 0 or r.get('progress', 0) > 0.99: print(l, end='', flush=True)" \
-    || { echo "== train $name failed:"; tail -40 runs/train-$name.log; exit 1; }
+    || { echo "== train $name failed:"; grep -v -E "torch/distributed|^\s+[~^]+$" runs/train-$name.log | grep -E -B3 -A12 "Error|error:|Traceback" | head -60; exit 1; }
 }
 
 for arm in $ARMS; do

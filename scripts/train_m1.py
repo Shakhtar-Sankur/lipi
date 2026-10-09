@@ -71,8 +71,8 @@ def main():
     ap.add_argument("--english-mb", type=float, default=6)
     ap.add_argument("--tokens", type=int, default=0)
     ap.add_argument("--seq", type=int, default=1024)
-    ap.add_argument("--micro", type=int, default=2)
-    ap.add_argument("--accum", type=int, default=4)
+    ap.add_argument("--micro", type=int, default=1)
+    ap.add_argument("--accum", type=int, default=8)
     ap.add_argument("--lr", type=float, default=5e-5)
     ap.add_argument("--embedding-lr", type=float, default=5e-4)
     ap.add_argument("--max-steps", type=int, default=0)
@@ -83,7 +83,7 @@ def main():
     distributed = "WORLD_SIZE" in os.environ and int(os.environ["WORLD_SIZE"]) > 1
     rank, world = 0, 1
     if distributed:
-        dist.init_process_group("nccl")
+        dist.init_process_group("nccl" if torch.cuda.is_available() else "gloo")
         rank, world = dist.get_rank(), dist.get_world_size()
     device = f"cuda:{int(os.environ.get('LOCAL_RANK', 0))}" if torch.cuda.is_available() else "cpu"
     if device != "cpu":
@@ -115,7 +115,10 @@ def main():
                             betas=(0.9, 0.95), weight_decay=0.0)
     peaks = [a.embedding_lr, a.lr]
     warm = max(1, steps // 20)
-    ddp = torch.nn.parallel.DistributedDataParallel(model, device_ids=[device]) if distributed else model
+    ddp = model
+    if distributed:   # gradient_as_bucket_view: the gradients live in DDP's buckets, not in a second copy
+        ddp = torch.nn.parallel.DistributedDataParallel(model, device_ids=[torch.device(device)] if device != "cpu" else None,
+                                                        gradient_as_bucket_view=True)
     scaler = torch.amp.GradScaler("cuda", enabled=device != "cpu")
     log, t0, seen = [], time.time(), 0
     if rank == 0:
@@ -145,6 +148,8 @@ def main():
             el = time.time() - t0
             rec = {"step": step, "loss": round(total, 4), "tokens": seen, "elapsed": round(el, 1),
                    "tokens_per_s": round(seen / max(el, 1e-9)), "progress": round(frac, 3)}
+            if device != "cpu":
+                rec["max_memory_gb"] = round(torch.cuda.max_memory_allocated() / 2**30, 2)
             log.append(rec)
             print(json.dumps(rec), flush=True)
     if rank == 0:
