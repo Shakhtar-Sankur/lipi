@@ -95,6 +95,37 @@ tokenizer and divided by the count for English (`results/m0/token_tax.csv`):
   the Same?*, EMNLP 2023). lipi's part is current models, every Indian language FLORES-200
   has, letters that tokenizers break, and then the fix with its effect on speed and quality.
 
+## M1 so far: the fix, tokenizer half
+
+Both causes, removed from Qwen 2.5's tokenizer (`lipi/extend.py`, `scripts/extend_tokenizer.py`):
+
+1. **Marks.** The pre-tokenizer's expression lets a word run over its combining marks, as
+   GPT-4o's does. Text without combining marks (English, code) is cut exactly as before.
+2. **Vocabulary.** New merges are learned on 85 MB of Odia web text (FineWeb-2, 20,000
+   documents; none contain a FLORES sentence) by continuing BPE from Qwen's own segmentation,
+   and appended after Qwen's 151,387 merges. Every new token contains the first two bytes
+   of an Odia character (E0 AC or E0 AD), which no other script's UTF-8 does, so the new
+   merges cannot fire on any other text: all 24 other languages keep exactly the same ids.
+
+On FLORES-200 devtest (held out), tokens as a multiple of English (`results/m1/tokenizer.json`):
+
+| Qwen 2.5 tokenizer | new tokens | Odia | Hindi | English |
+|---|---|---|---|---|
+| as shipped | 0 | 9.70× | 4.42× | 1× |
+| marks fix only | 0 | 9.70× | 4.42× | 1× (same tokens) |
+| new Odia tokens only | 1K / 4K / 16K | 2.53× / 2.38× / **2.34×** | 4.42× (same ids) | 1× (same ids) |
+| **both** | 1K / 4K / **16K** / 32K | 1.98× / 1.44× / **1.13×** / 1.04× | 4.42× | 1× (same tokens) |
+
+New tokens alone stop at the pre-tokenizer's floor (2.33×, from M0); the marks fix alone does
+nothing, because the vocabulary has no Odia words to use it with. Together they take Odia
+from 9.70× English to **1.13×** with 16K new tokens (8.6× fewer tokens for the same text) and
+1.04× with 32K. The marks fix changes the ids of 18 other languages (their words are no
+longer cut at vowel signs) and lowers their token counts by at most 0.5% (Kashmiri in Perso-Arabic script: 0.46% fewer).
+
+The 16K tokenizer is `results/m1/tokenizers/qwen25-odia-marks-vocab-16k.json`. Fewer tokens
+help only if the model still understands the text: the model half of M1 trains the new
+embeddings and measures quality.
+
 ## Plan
 
 | | Milestone | State |
