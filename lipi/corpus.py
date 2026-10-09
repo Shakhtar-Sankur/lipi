@@ -1,5 +1,5 @@
 """Web text for training, from FineWeb-2 (Hugging Face, ODC-By), which names its subsets with the
-same codes as FLORES-200 (ory_Orya, hin_Deva, ...).
+same codes as FLORES-200 (ory_Orya, hin_Deva, ...); English comes from FineWeb.
 
 Only a sample is read: row groups spread evenly through the language's first file, fetched
 over HTTP range requests, so a few hundred MB of text needs no 1.4 GB download. Documents
@@ -13,6 +13,8 @@ from . import flores
 
 CACHE = os.environ.get("LIPI_CACHE", os.path.expanduser("~/.cache/lipi"))
 REPO = "datasets/HuggingFaceFW/fineweb-2/data/{code}/train/000_00000.parquet"
+# English: FineWeb (the English counterpart of FineWeb-2), first file of its 10B-token sample
+ENGLISH = "datasets/HuggingFaceFW/fineweb/sample/10BT/000_00000.parquet"
 
 
 def sample(code, groups, every, min_score=0.9, holdout=False):
@@ -20,7 +22,7 @@ def sample(code, groups, every, min_score=0.9, holdout=False):
     for the held-out sample, so the two never share a row group)."""
     import pyarrow.parquet as pq
     from huggingface_hub import HfFileSystem
-    f = HfFileSystem().open(REPO.format(code=code), "rb", block_size=8 * 2**20)
+    f = HfFileSystem().open(ENGLISH if code == "eng_Latn" else REPO.format(code=code), "rb", block_size=8 * 2**20)
     pf = pq.ParquetFile(f)
     start = every // 2 if holdout else 0
     picks = list(range(start, pf.metadata.num_row_groups, every))[:groups]
