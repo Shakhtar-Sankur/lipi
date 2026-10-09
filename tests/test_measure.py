@@ -25,6 +25,9 @@ class Fake:
     def is_unk(self, i):
         return False
 
+    def floor(self, text):
+        return None
+
 
 def run(text, cuts):
     tok = Fake(cuts)
@@ -91,6 +94,12 @@ def test_every_tokenizer_round_trips(key):
     tok = tokenizers.load(key)
     for text, ids in zip(SAMPLE, tok.encode(SAMPLE)):
         assert measure.sentence(tok, text, ids).get("exact") == 1, (key, text)
+
+
+def test_the_floor_splits_at_vowel_signs_only_without_marks():
+    word = "କହିଛନ୍ତି"
+    assert tokenizers.load("cl100k").floor(word) == 4     # କହ · ିଛନ · ୍ତ · ି
+    assert tokenizers.load("o200k").floor(word) == 1
 
 
 def test_gpt4o_round_trips_and_cuts_odia():
