@@ -1,0 +1,315 @@
+{
+ "device": "Tesla T4",
+ "sentences": 40,
+ "rows": [
+  {
+   "tokenizer": "qwen",
+   "lang": "eng_Latn",
+   "sentences": 40,
+   "tokens": 1232,
+   "seconds_batch1": 33.24,
+   "ms_per_token": 26.98,
+   "seconds_per_sentence": 0.831,
+   "seconds_batch16": 4.978,
+   "flores_tokens_all": 27621,
+   "sentences_in_32k_context": ">1012"
+  },
+  {
+   "tokenizer": "qwen",
+   "lang": "hin_Deva",
+   "sentences": 40,
+   "tokens": 5618,
+   "seconds_batch1": 149.161,
+   "ms_per_token": 26.55,
+   "seconds_per_sentence": 3.729,
+   "seconds_batch16": 19.047,
+   "flores_tokens_all": 121973,
+   "sentences_in_32k_context": 274
+  },
+  {
+   "tokenizer": "qwen",
+   "lang": "ben_Beng",
+   "sentences": 40,
+   "tokens": 6483,
+   "seconds_batch1": 173.24,
+   "ms_per_token": 26.72,
+   "seconds_per_sentence": 4.331,
+   "seconds_batch16": 22.794,
+   "flores_tokens_all": 138814,
+   "sentences_in_32k_context": 232
+  },
+  {
+   "tokenizer": "qwen",
+   "lang": "tam_Taml",
+   "sentences": 40,
+   "tokens": 7958,
+   "seconds_batch1": 211.117,
+   "ms_per_token": 26.53,
+   "seconds_per_sentence": 5.2779,
+   "seconds_batch16": 26.881,
+   "flores_tokens_all": 168828,
+   "sentences_in_32k_context": 192
+  },
+  {
+   "tokenizer": "qwen",
+   "lang": "tel_Telu",
+   "sentences": 40,
+   "tokens": 8931,
+   "seconds_batch1": 235.666,
+   "ms_per_token": 26.39,
+   "seconds_per_sentence": 5.8917,
+   "seconds_batch16": 28.186,
+   "flores_tokens_all": 193195,
+   "sentences_in_32k_context": 166
+  },
+  {
+   "tokenizer": "qwen",
+   "lang": "ory_Orya",
+   "sentences": 40,
+   "tokens": 12588,
+   "seconds_batch1": 334.867,
+   "ms_per_token": 26.6,
+   "seconds_per_sentence": 8.3717,
+   "seconds_batch16": 46.062,
+   "flores_tokens_all": 267893,
+   "sentences_in_32k_context": 116
+  },
+  {
+   "tokenizer": "qwen",
+   "lang": "urd_Arab",
+   "sentences": 40,
+   "tokens": 4033,
+   "seconds_batch1": 108.281,
+   "ms_per_token": 26.85,
+   "seconds_per_sentence": 2.707,
+   "seconds_batch16": 13.132,
+   "flores_tokens_all": 86962,
+   "sentences_in_32k_context": 380
+  },
+  {
+   "tokenizer": "qwen",
+   "lang": "sat_Olck",
+   "sentences": 40,
+   "tokens": 10399,
+   "seconds_batch1": 276.594,
+   "ms_per_token": 26.6,
+   "seconds_per_sentence": 6.9148,
+   "seconds_batch16": 40.804,
+   "flores_tokens_all": 246373,
+   "sentences_in_32k_context": 134
+  },
+  {
+   "tokenizer": "qwen",
+   "prefill_odia_3000_chars": {
+    "tokens": 5923,
+    "seconds": 3.4032
+   }
+  },
+  {
+   "tokenizer": "lipi-odia-16k",
+   "lang": "eng_Latn",
+   "sentences": 40,
+   "tokens": 1232,
+   "seconds_batch1": 33.766,
+   "ms_per_token": 27.41,
+   "seconds_per_sentence": 0.8442,
+   "seconds_batch16": 5.087,
+   "flores_tokens_all": 27621,
+   "sentences_in_32k_context": ">1012"
+  },
+  {
+   "tokenizer": "lipi-odia-16k",
+   "lang": "hin_Deva",
+   "sentences": 40,
+   "tokens": 5618,
+   "seconds_batch1": 152.132,
+   "ms_per_token": 27.08,
+   "seconds_per_sentence": 3.8033,
+   "seconds_batch16": 19.337,
+   "flores_tokens_all": 121940,
+   "sentences_in_32k_context": 274
+  },
+  {
+   "tokenizer": "lipi-odia-16k",
+   "lang": "ben_Beng",
+   "sentences": 40,
+   "tokens": 6483,
+   "seconds_batch1": 174.046,
+   "ms_per_token": 26.85,
+   "seconds_per_sentence": 4.3512,
+   "seconds_batch16": 22.645,
+   "flores_tokens_all": 138814,
+   "sentences_in_32k_context": 232
+  },
+  {
+   "tokenizer": "lipi-odia-16k",
+   "lang": "tam_Taml",
+   "sentences": 40,
+   "tokens": 7958,
+   "seconds_batch1": 214.144,
+   "ms_per_token": 26.91,
+   "seconds_per_sentence": 5.3536,
+   "seconds_batch16": 27.312,
+   "flores_tokens_all": 168828,
+   "sentences_in_32k_context": 192
+  },
+  {
+   "tokenizer": "lipi-odia-16k",
+   "lang": "tel_Telu",
+   "sentences": 40,
+   "tokens": 8931,
+   "seconds_batch1": 237.919,
+   "ms_per_token": 26.64,
+   "seconds_per_sentence": 5.948,
+   "seconds_batch16": 28.13,
+   "flores_tokens_all": 193191,
+   "sentences_in_32k_context": 166
+  },
+  {
+   "tokenizer": "lipi-odia-16k",
+   "lang": "ory_Orya",
+   "sentences": 40,
+   "tokens": 1466,
+   "seconds_batch1": 39.571,
+   "ms_per_token": 26.99,
+   "seconds_per_sentence": 0.9893,
+   "seconds_batch16": 5.603,
+   "flores_tokens_all": 31211,
+   "sentences_in_32k_context": ">1012"
+  },
+  {
+   "tokenizer": "lipi-odia-16k",
+   "lang": "urd_Arab",
+   "sentences": 40,
+   "tokens": 4032,
+   "seconds_batch1": 107.553,
+   "ms_per_token": 26.67,
+   "seconds_per_sentence": 2.6888,
+   "seconds_batch16": 13.309,
+   "flores_tokens_all": 86932,
+   "sentences_in_32k_context": 381
+  },
+  {
+   "tokenizer": "lipi-odia-16k",
+   "lang": "sat_Olck",
+   "sentences": 40,
+   "tokens": 10399,
+   "seconds_batch1": 276.021,
+   "ms_per_token": 26.54,
+   "seconds_per_sentence": 6.9005,
+   "seconds_batch16": 40.888,
+   "flores_tokens_all": 246373,
+   "sentences_in_32k_context": 134
+  },
+  {
+   "tokenizer": "lipi-odia-16k",
+   "prefill_odia_3000_chars": {
+    "tokens": 618,
+    "seconds": 0.0677
+   }
+  },
+  {
+   "tokenizer": "lipi-indic-96k",
+   "lang": "eng_Latn",
+   "sentences": 40,
+   "tokens": 1232,
+   "seconds_batch1": 33.521,
+   "ms_per_token": 27.21,
+   "seconds_per_sentence": 0.838,
+   "seconds_batch16": 5.013,
+   "flores_tokens_all": 27621,
+   "sentences_in_32k_context": ">1012"
+  },
+  {
+   "tokenizer": "lipi-indic-96k",
+   "lang": "hin_Deva",
+   "sentences": 40,
+   "tokens": 1636,
+   "seconds_batch1": 44.713,
+   "ms_per_token": 27.33,
+   "seconds_per_sentence": 1.1178,
+   "seconds_batch16": 5.674,
+   "flores_tokens_all": 34991,
+   "sentences_in_32k_context": 944
+  },
+  {
+   "tokenizer": "lipi-indic-96k",
+   "lang": "ben_Beng",
+   "sentences": 40,
+   "tokens": 1591,
+   "seconds_batch1": 43.236,
+   "ms_per_token": 27.18,
+   "seconds_per_sentence": 1.0809,
+   "seconds_batch16": 5.666,
+   "flores_tokens_all": 34565,
+   "sentences_in_32k_context": 957
+  },
+  {
+   "tokenizer": "lipi-indic-96k",
+   "lang": "tam_Taml",
+   "sentences": 40,
+   "tokens": 1745,
+   "seconds_batch1": 46.731,
+   "ms_per_token": 26.78,
+   "seconds_per_sentence": 1.1683,
+   "seconds_batch16": 6.734,
+   "flores_tokens_all": 37377,
+   "sentences_in_32k_context": 876
+  },
+  {
+   "tokenizer": "lipi-indic-96k",
+   "lang": "tel_Telu",
+   "sentences": 40,
+   "tokens": 1688,
+   "seconds_batch1": 45.063,
+   "ms_per_token": 26.7,
+   "seconds_per_sentence": 1.1266,
+   "seconds_batch16": 6.4,
+   "flores_tokens_all": 36721,
+   "sentences_in_32k_context": 896
+  },
+  {
+   "tokenizer": "lipi-indic-96k",
+   "lang": "ory_Orya",
+   "sentences": 40,
+   "tokens": 1768,
+   "seconds_batch1": 47.769,
+   "ms_per_token": 27.02,
+   "seconds_per_sentence": 1.1942,
+   "seconds_batch16": 6.896,
+   "flores_tokens_all": 37347,
+   "sentences_in_32k_context": 881
+  },
+  {
+   "tokenizer": "lipi-indic-96k",
+   "lang": "urd_Arab",
+   "sentences": 40,
+   "tokens": 1774,
+   "seconds_batch1": 47.964,
+   "ms_per_token": 27.04,
+   "seconds_per_sentence": 1.1991,
+   "seconds_batch16": 5.997,
+   "flores_tokens_all": 38156,
+   "sentences_in_32k_context": 860
+  },
+  {
+   "tokenizer": "lipi-indic-96k",
+   "lang": "sat_Olck",
+   "sentences": 40,
+   "tokens": 1886,
+   "seconds_batch1": 51.332,
+   "ms_per_token": 27.22,
+   "seconds_per_sentence": 1.2833,
+   "seconds_batch16": 7.159,
+   "flores_tokens_all": 42018,
+   "sentences_in_32k_context": 778
+  },
+  {
+   "tokenizer": "lipi-indic-96k",
+   "prefill_odia_3000_chars": {
+    "tokens": 650,
+    "seconds": 0.0879
+   }
+  }
+ ]
+}

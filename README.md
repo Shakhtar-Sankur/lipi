@@ -286,6 +286,26 @@ Read it with care:
 The 64K and 96K tokenizers are `results/m1/tokenizers/qwen25-indic-{64k,96k}.json`, with the
 measurements in `results/m1/indic.json`.
 
+## M2: what the token tax costs in time, and what the fix gives back
+
+Measured on one Kaggle T4 (fp16) with Qwen 2.5 0.5B: the time to write 40 FLORES devtest sentences per language, token by token, forced to the reference text so every tokenizer writes exactly the same words ([`scripts/speed_m2.py`](scripts/speed_m2.py), [raw results](results/m2/speed.json)). Speed does not depend on the weights, so the extended models are the untrained ones.
+
+| Language | Qwen's tokenizer, s per sentence | lipi-Indic 96K | Speed-up (batch 1 / 16) | FLORES sentences in a 32K context: Qwen → lipi-Indic |
+|---|---|---|---|---|
+| English | 0.83 | 0.84 | 0.99× / 0.99× | >1,012 → >1,012 |
+| Hindi | 3.73 | 1.12 | **3.3×** / 3.4× | 274 → 944 |
+| Bengali | 4.33 | 1.08 | **4.0×** / 4.0× | 232 → 957 |
+| Tamil | 5.28 | 1.17 | **4.5×** / 4.0× | 192 → 876 |
+| Telugu | 5.89 | 1.13 | **5.2×** / 4.4× | 166 → 896 |
+| Odia | 8.37 | 1.19 | **7.0×** / 6.7× | 116 → 881 |
+| Urdu | 2.71 | 1.20 | **2.3×** / 2.2× | 380 → 860 |
+| Santali (Ol Chiki) | 6.91 | 1.28 | **5.4×** / 5.7× | 134 → 778 |
+
+- **Each token costs the same** (26.4–27.4 ms on every tokenizer, so the larger vocabulary does not slow the model down); what changes is how many tokens the same sentence needs. With Qwen's tokenizer, an Odia sentence takes 10× as long to write as an English one; with lipi-Indic, 1.4×.
+- The Odia-only tokenizer (lipi-odia-16k) writes Odia faster still (0.99 s per sentence, **8.5×**) but leaves the other languages where they were (0.98–1.01×).
+- **Reading a long Odia document** (3,000 characters, the prefill before the first answer token): Qwen's tokenizer needs 5,923 tokens and 3.40 s; lipi-odia-16k 618 tokens and 0.068 s (**50×**); lipi-Indic 650 tokens and 0.088 s (39×). Prefill grows faster than linearly with length, so cutting tokens 9.6× saves more than 9.6× the time.
+- Limits: one GPU, one model size, forced decoding of reference sentences (real answers differ in length), 40 sentences per language; the context figures count all 1,012 FLORES devtest sentences.
+
 ## Plan
 
 | | Milestone | State |
@@ -293,7 +313,7 @@ measurements in `results/m1/indic.json`.
 | M0 | Measure the token tax: 24 Indian languages × 15 tokenizers; tokens, letters broken, byte fragments, the pre-tokenizer's floor; charts | done |
 | M1 | Fix it in an open model: train Indic tokens, extend a small model's vocabulary (Qwen 2.5), initialise and train the new embeddings on Kaggle's 2× T4; measure tokens saved and quality (bits per byte, translation, comprehension) before and after | done (one run per arm) |
 | M1b | lipi-Indic: one tokenizer for all 24 Indian languages, against GPT-4o / GPT-5 and Gemini | done (tokenizer); model training next |
-| M2 | Speed end to end: time to write the same sentences and how much text fits in the context window, per language, before and after, on a T4 (`scripts/speed_m2.py`) | scripts ready |
+| M2 | Speed end to end: time to write the same sentences and how much text fits in the context window, per language, before and after, on a T4 (`scripts/speed_m2.py`) | done |
 | M3 | An interactive token-tax page (type a sentence, see each model's tokens and cost), all 22 scheduled languages with IN22, write-up | |
 
 ## Run it
