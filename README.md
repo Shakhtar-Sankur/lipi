@@ -94,7 +94,12 @@ tokenizer and divided by the count for English (`results/m0/token_tax.csv`):
   the multiple applies to whatever the price is.
 - Measuring tokenizer unfairness is not new (Petrov et al., *Language Model Tokenizers
   Introduce Unfairness Between Languages*, NeurIPS 2023; Ahia et al., *Do All Languages Cost
-  the Same?*, EMNLP 2023). lipi's part is current models, every Indian language FLORES-200
+  the Same?*, EMNLP 2023).
+- The pre-tokenizer floor was formalised first by Regmi, Pudasaini and Phakami Pun, *Vowel Signs
+  Are Not Letters: A Pre-tokenization Ceiling on Multilingual Tokenizer Fertility*
+  ([arXiv:2608.26449](https://arxiv.org/abs/2608.26449), August 2026), with a census of the
+  models that still use the letters-only word class; lipi found it independently and applies
+  it to current tokenizers for every Indian language in FLORES-200. lipi's part is current models, every Indian language FLORES-200
   has, letters that tokenizers break, and then the fix with its effect on speed and quality.
 
 ## M1: the fix
