@@ -4,6 +4,9 @@
 #
 # RUN=smoke : about 15 minutes; every step on a little data, to find problems first.
 # RUN=full  : the measured run (several hours: "Save Version -> Save & Run All").
+# SEED=1    : repeat the trained arms with another seed (the order of the training documents);
+#             results go to runs-s1 and /kaggle/working/lipi-m1-s1, and the untrained models,
+#             which do not depend on the seed, are not evaluated again.
 #
 # Models compared, all Qwen 2.5 0.5B:
 #   base  as shipped, Qwen's tokenizer                        (no training)
@@ -14,8 +17,10 @@
 set -eo pipefail
 RUN=${RUN:-smoke}
 ARMS=${ARMS:-"A B C"}
+SEED=${SEED:-0}
+if [ "$SEED" = 0 ]; then RUNS=runs; TAG=""; else RUNS=runs-s$SEED; TAG="-s$SEED"; fi
 cd "$(dirname "$0")/.."
-echo "== lipi M1 ($RUN, arms: $ARMS): lipi $(git rev-parse --short HEAD)"
+echo "== lipi M1 ($RUN, arms: $ARMS, seed $SEED): lipi $(git rev-parse --short HEAD)"
 nvidia-smi --query-gpu=index,name,memory.total --format=csv,noheader
 NGPU=$(nvidia-smi -L | wc -l)
 pip install -q sacrebleu 2>&1 | grep -v -i warn || true
@@ -36,59 +41,61 @@ for code, g, every, hold in (("ory_Orya", 60 if full else 4, 20, 4), ("eng_Latn"
         print(code, {k: {x: y for x, y in v.items() if x != "row_groups"} for k, v in info.items()}, flush=True)
 EOF
 
-mkdir -p runs
-OUT=runs/evals.jsonl
+mkdir -p $RUNS
+OUT=$RUNS/evals.jsonl
 if [ "$RUN" = smoke ]; then
-  TRAIN="--odia-mb 1 --english-mb 0.25 --max-steps 20"; EVAL="--quick"
+  TRAIN="--odia-mb 1 --english-mb 0.25 --max-steps 20 --seed $SEED"; EVAL="--quick"
 else
-  TRAIN="--odia-mb 24 --english-mb 6"; EVAL=""
+  TRAIN="--odia-mb 24 --english-mb 6 --seed $SEED"; EVAL=""
 fi
 
 ev() {  # ev NAME GPU ARGS...: evaluate on one GPU, in the background
   local name=$1 gpu=$2; shift 2
-  CUDA_VISIBLE_DEVICES=$gpu python scripts/eval_m1.py --name $name $EVAL --out $OUT "$@" > runs/eval-$name.log 2>&1 &
+  CUDA_VISIBLE_DEVICES=$gpu python scripts/eval_m1.py --name $name $EVAL --out $OUT "$@" > $RUNS/eval-$name.log 2>&1 &
 }
 
-echo "== evaluate the untrained models"
-ev base 0 --tokenizer qwen
-ev init $((NGPU > 1 ? 1 : 0)) --tokenizer extended
-wait
-grep -h '"phase"' runs/eval-base.log runs/eval-init.log || true
+if [ "$SEED" = 0 ]; then
+  echo "== evaluate the untrained models"
+  ev base 0 --tokenizer qwen
+  ev init $((NGPU > 1 ? 1 : 0)) --tokenizer extended
+  wait
+  grep -h '"phase"' $RUNS/eval-base.log $RUNS/eval-init.log || true
+fi
 
 train() {  # train NAME ARGS...
   echo "== train $1"
   local name=$1; shift
-  PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True torchrun --nproc_per_node $NGPU scripts/train_m1.py --out runs/$name "$@" 2>&1 | tee runs/train-$name.log | \
+  PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True torchrun --nproc_per_node $NGPU scripts/train_m1.py --out $RUNS/$name "$@" 2>&1 | tee $RUNS/train-$name.log | \
     grep --line-buffered -E '^\{' | python -c "import sys,json
 for l in sys.stdin:
     r=json.loads(l)
     if 'phase' in r or r['step'] % 100 == 0 or r['step'] < 3 or r.get('progress', 0) > 0.99: print(l, end='', flush=True)" \
-    || { echo "== train $name failed:"; grep -v -E "torch/distributed|^\s+[~^]+$" runs/train-$name.log | grep -E -B3 -A12 "Error|error:|Traceback" | head -60; exit 1; }
+    || { echo "== train $name failed:"; grep -v -E "torch/distributed|^\s+[~^]+$" $RUNS/train-$name.log | grep -E -B3 -A12 "Error|error:|Traceback" | head -60; exit 1; }
 }
 
 for arm in $ARMS; do
   case $arm in
     A) train A --tokenizer qwen $TRAIN ;;
     B) train B --tokenizer extended $TRAIN ;;
-    C) TOK=$(python -c "import json;print(json.load(open('runs/A/train.json'))['tokens_trained'])")
-       train C --tokenizer extended --tokens $TOK $( [ "$RUN" = smoke ] && echo "--max-steps 20" ) ;;
+    C) TOK=$(python -c "import json;print(json.load(open('$RUNS/A/train.json'))['tokens_trained'])")
+       train C --tokenizer extended --tokens $TOK --seed $SEED $( [ "$RUN" = smoke ] && echo "--max-steps 20" ) ;;
   esac
 done
 
 echo "== evaluate the trained models"
 i=0
 for arm in $ARMS; do
-  ev $arm $((i % NGPU)) --model runs/$arm
+  ev $arm $((i % NGPU)) --model $RUNS/$arm
   i=$((i + 1))
   if [ $((i % NGPU)) = 0 ]; then wait; fi
 done
 wait
-for f in runs/eval-*.log; do grep -q '"name"' $f || { echo "== $f failed:"; tail -20 $f; }; done
+for f in $RUNS/eval-*.log; do grep -q '"name"' $f || { echo "== $f failed:"; tail -20 $f; }; done
 
 if [ -d /kaggle/working ]; then   # keep the numbers after the session ends (Output tab)
-  mkdir -p /kaggle/working/lipi-m1 && cp runs/evals.jsonl runs/*.log /kaggle/working/lipi-m1/
-  for arm in $ARMS; do cp runs/$arm/train.json /kaggle/working/lipi-m1/train-$arm.json; done
+  mkdir -p /kaggle/working/lipi-m1$TAG && cp $RUNS/evals.jsonl $RUNS/*.log /kaggle/working/lipi-m1$TAG/
+  for arm in $ARMS; do cp $RUNS/$arm/train.json /kaggle/working/lipi-m1$TAG/train-$arm.json; done
 fi
 echo "== summary"
-python scripts/summarize_m1.py runs
+python scripts/summarize_m1.py $RUNS
 echo "== done: copy from '== lipi M1' to here and send it back"
