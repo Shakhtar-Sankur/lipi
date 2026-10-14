@@ -332,3 +332,7 @@ python -m pytest tests               # LIPI_ALL_TOKENIZERS=1 also round-trips ev
 ```
 
 FLORES-200 and the tokenizers download on first use into `~/.cache/lipi` (`LIPI_CACHE`).
+
+## License
+
+Apache-2.0. See [LICENSE](LICENSE).
