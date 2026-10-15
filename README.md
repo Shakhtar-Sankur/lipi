@@ -14,6 +14,7 @@ Gemini's (below).
 **Use it:** the lipi-Indic 96K tokenizer is on Hugging Face at
 [Shakhtar-Sankur/lipi-indic-96k](https://huggingface.co/Shakhtar-Sankur/lipi-indic-96k)
 (`AutoTokenizer.from_pretrained("Shakhtar-Sankur/lipi-indic-96k")`).
+
 **Try it:** [The Token Tax](https://shakhtar-sankur.github.io/token-tax/) splits any sentence with
 GPT-4o's, Qwen 2.5's and lipi-Indic's tokenizers in your browser, next to the measured tax for
 all 24 languages and 16 tokenizers. (In JavaScript, transformers.js cannot compile lipi-Indic's
