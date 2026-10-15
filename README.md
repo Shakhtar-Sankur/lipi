@@ -11,6 +11,10 @@ Gemini's (below).
 
 *Lipi* (ଲିପି, लिपि, লিপি) means "script, writing" in Odia, Hindi and Bengali.
 
+**Use it:** the lipi-Indic 96K tokenizer is on Hugging Face at
+[Shakhtar-Sankur/lipi-indic-96k](https://huggingface.co/Shakhtar-Sankur/lipi-indic-96k)
+(`AutoTokenizer.from_pretrained("Shakhtar-Sankur/lipi-indic-96k")`).
+
 ![One Odia sentence as five tokenizers split it](results/m0/sentence.png)
 
 ## What M0 found
