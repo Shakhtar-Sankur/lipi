@@ -9,6 +9,8 @@ then removes it from an open model: one extended tokenizer, lipi-Indic, takes fe
 than both GPT-4o's and Gemini's in 23 of the 24 languages, with a smaller vocabulary than
 Gemini's (below).
 
+Paper: [*Removing the Token Tax from an Existing Model: A Vocabulary Extension for 24 Indian Languages That Keeps Every Other Token*](paper/main.pdf) (8 pages; LaTeX source in [`paper/`](paper/)). The tokenizer is on [Hugging Face](https://huggingface.co/Shakhtar-Sankur/lipi-indic-96k).
+
 *Lipi* (ଲିପି, लिपि, লিপি) means "script, writing" in Odia, Hindi and Bengali.
 
 **Use it:** the lipi-Indic 96K tokenizer is on Hugging Face at

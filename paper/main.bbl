@@ -1,0 +1,186 @@
+\begin{thebibliography}{27}
+\providecommand{\natexlab}[1]{#1}
+
+\bibitem[{Ahia et~al.(2023)Ahia, Kumar, Gonen, Kasai, Mortensen, Smith, and
+  Tsvetkov}]{ahia2023allcost}
+Orevaoghene Ahia, Sachin Kumar, Hila Gonen, Jungo Kasai, David~R. Mortensen,
+  Noah~A. Smith, and Yulia Tsvetkov. 2023.
+\newblock Do all languages cost the same? tokenization in the era of commercial
+  language models.
+\newblock In \emph{Proceedings of the 2023 Conference on Empirical Methods in
+  Natural Language Processing}.
+
+\bibitem[{Bandarkar et~al.(2024)Bandarkar, Liang, Muller, Artetxe, Shukla,
+  Husa, Goyal, Krishnan, Zettlemoyer, and Khabsa}]{bandarkar2024belebele}
+Lucas Bandarkar, Davis Liang, Benjamin Muller, Mikel Artetxe, Satya~Narayan
+  Shukla, Donald Husa, Naman Goyal, Abhinandan Krishnan, Luke Zettlemoyer, and
+  Madian Khabsa. 2024.
+\newblock The {B}elebele benchmark: a parallel reading comprehension dataset in
+  122 language variants.
+\newblock In \emph{Proceedings of the 62nd Annual Meeting of the Association
+  for Computational Linguistics}.
+
+\bibitem[{{BigScience Workshop}(2022)}]{bigscience2022bloom}
+{BigScience Workshop}. 2022.
+\newblock {BLOOM}: A {176B}-parameter open-access multilingual language model.
+\newblock \emph{arXiv preprint arXiv:2211.05100}.
+
+\bibitem[{Cui et~al.(2023)Cui, Yang, and Yao}]{cui2023chinesellama}
+Yiming Cui, Ziqing Yang, and Xin Yao. 2023.
+\newblock Efficient and effective text encoding for {C}hinese {LLaMA} and
+  {A}lpaca.
+\newblock \emph{arXiv preprint arXiv:2304.08177}.
+
+\bibitem[{Dobler and de~Melo(2023)}]{dobler2023focus}
+Konstantin Dobler and Gerard de~Melo. 2023.
+\newblock {FOCUS}: Effective embedding initialization for monolingual
+  specialization of multilingual models.
+\newblock In \emph{Proceedings of the 2023 Conference on Empirical Methods in
+  Natural Language Processing}.
+
+\bibitem[{Doddapaneni et~al.(2023)Doddapaneni, Aralikatte, Ramesh, Goyal,
+  Khapra, Kunchukuttan, and Kumar}]{doddapaneni2023indicbert}
+Sumanth Doddapaneni, Rahul Aralikatte, Gowtham Ramesh, Shreya Goyal, Mitesh~M.
+  Khapra, Anoop Kunchukuttan, and Pratyush Kumar. 2023.
+\newblock Towards leaving no {I}ndic language behind: Building monolingual
+  corpora, benchmark and models for {I}ndic languages.
+\newblock In \emph{Proceedings of the 61st Annual Meeting of the Association
+  for Computational Linguistics}.
+
+\bibitem[{{Gemma Team}(2025)}]{gemma2025gemma3}
+{Gemma Team}. 2025.
+\newblock Gemma 3 technical report.
+\newblock \emph{arXiv preprint arXiv:2503.19786}.
+
+\bibitem[{Hewitt(2021)}]{hewitt2021initializing}
+John Hewitt. 2021.
+\newblock Initializing new word embeddings for pretrained language models.
+\newblock \url{https://nlp.stanford.edu/~johnhew/vocab-expansion.html}.
+
+\bibitem[{{Hugging Face Transformers contributors}(2026)}]{hf2026qwenregex}
+{Hugging Face Transformers contributors}. 2026.
+\newblock {Qwen2Tokenizer} overwrites pre\_tokenizer from tokenizer.json (issue
+  \#49066).
+\newblock \url{https://github.com/huggingface/transformers/issues/49066}.
+
+\bibitem[{Land and Bartolo(2024)}]{land2024magikarp}
+Sander Land and Max Bartolo. 2024.
+\newblock Fishing for {M}agikarp: Automatically detecting under-trained tokens
+  in large language models.
+\newblock In \emph{Proceedings of the 2024 Conference on Empirical Methods in
+  Natural Language Processing}.
+
+\bibitem[{Mandarapu and Kunkunuru(2026)}]{mandarapu2026ledger}
+Madhulatha Mandarapu and Sandeep Kunkunuru. 2026.
+\newblock Removable and irreducible: A token-cost ledger for the multilingual
+  tokenization tax.
+\newblock \emph{arXiv preprint arXiv:2609.00378}.
+
+\bibitem[{Minixhofer et~al.(2022)Minixhofer, Paischer, and
+  Rekabsaz}]{minixhofer2022wechsel}
+Benjamin Minixhofer, Fabian Paischer, and Navid Rekabsaz. 2022.
+\newblock {WECHSEL}: Effective initialization of subword embeddings for
+  cross-lingual transfer of monolingual language models.
+\newblock In \emph{Proceedings of the 2022 Conference of the North American
+  Chapter of the Association for Computational Linguistics: Human Language
+  Technologies}.
+
+\bibitem[{{NLLB Team} et~al.(2022){NLLB Team}, Costa-juss{\`a}
+  et~al.}]{nllb2022}
+{NLLB Team}, Marta~R. Costa-juss{\`a}, et~al. 2022.
+\newblock No language left behind: Scaling human-centered machine translation.
+\newblock \emph{arXiv preprint arXiv:2207.04672}.
+
+\bibitem[{Penedo et~al.(2025)Penedo, Kydl{\'\i}{\v{c}}ek, Sabol{\v{c}}ec,
+  Messmer, Foroutan et~al.}]{penedo2025fineweb2}
+Guilherme Penedo, Hynek Kydl{\'\i}{\v{c}}ek, Vinko Sabol{\v{c}}ec, Bettina
+  Messmer, Negar Foroutan, et~al. 2025.
+\newblock {FineWeb2}: One pipeline to scale them all -- adapting pre-training
+  data processing to every language.
+\newblock \emph{arXiv preprint arXiv:2506.20920}.
+
+\bibitem[{Petrov et~al.(2023)Petrov, La~Malfa, Torr, and
+  Bibi}]{petrov2023unfairness}
+Aleksandar Petrov, Emanuele La~Malfa, Philip H.~S. Torr, and Adel Bibi. 2023.
+\newblock Language model tokenizers introduce unfairness between languages.
+\newblock In \emph{Advances in Neural Information Processing Systems},
+  volume~36.
+
+\bibitem[{Popovi{\'c}(2017)}]{popovic2017chrf}
+Maja Popovi{\'c}. 2017.
+\newblock chr{F}++: words helping character n-grams.
+\newblock In \emph{Proceedings of the Second Conference on Machine
+  Translation}.
+
+\bibitem[{{Qwen Team}(2024)}]{qwen2025qwen25}
+{Qwen Team}. 2024.
+\newblock {Qwen2.5} technical report.
+\newblock \emph{arXiv preprint arXiv:2412.15115}.
+
+\bibitem[{Radford et~al.(2019)Radford, Wu, Child, Luan, Amodei, and
+  Sutskever}]{radford2019gpt2}
+Alec Radford, Jeffrey Wu, Rewon Child, David Luan, Dario Amodei, and Ilya
+  Sutskever. 2019.
+\newblock Language models are unsupervised multitask learners.
+\newblock Technical report, OpenAI.
+
+\bibitem[{Rana et~al.(2025)Rana, Menezes, Kulkarni, Khatri, and
+  Agarwal}]{rana2025mutant}
+Souvik Rana, Arul Menezes, Ashish Kulkarni, Chandra Khatri, and Shubham
+  Agarwal. 2025.
+\newblock {MUTANT}: A recipe for multilingual tokenizer design.
+\newblock \emph{arXiv preprint arXiv:2511.03237}.
+
+\bibitem[{Regmi et~al.(2026)Regmi, Pudasaini, and Phakami~Pun}]{regmi2026vowel}
+Sajal Regmi, Siddhartha Pudasaini, and Chetan Phakami~Pun. 2026.
+\newblock Vowel signs are not letters: A pre-tokenization ceiling on
+  multilingual tokenizer fertility.
+\newblock \emph{arXiv preprint arXiv:2608.26449}.
+
+\bibitem[{Rust et~al.(2021)Rust, Pfeiffer, Vuli{\'c}, Ruder, and
+  Gurevych}]{rust2021tokenizer}
+Phillip Rust, Jonas Pfeiffer, Ivan Vuli{\'c}, Sebastian Ruder, and Iryna
+  Gurevych. 2021.
+\newblock How good is your tokenizer? on the monolingual performance of
+  multilingual language models.
+\newblock In \emph{Proceedings of the 59th Annual Meeting of the Association
+  for Computational Linguistics and the 11th International Joint Conference on
+  Natural Language Processing}.
+
+\bibitem[{{Sarvam AI}(2024)}]{sarvam2024sarvam1}
+{Sarvam AI}. 2024.
+\newblock Sarvam-1: A {2B}-parameter language model optimized for {I}ndian
+  languages.
+\newblock \url{https://www.sarvam.ai/blogs/sarvam-1}.
+
+\bibitem[{Shravan(2026)}]{shravan2026brahmic}
+Rohan Shravan. 2026.
+\newblock {BrahmicTokenizer-131K}: An {I}ndic-capable drop-in replacement for
+  o200k\_base.
+\newblock \emph{arXiv preprint arXiv:2605.29379}.
+
+\bibitem[{Somide(2026)}]{somide2026african}
+Olaoye~Anthony Somide. 2026.
+\newblock The {A}frican language tax: Quantifying the cost, latency, and
+  context penalty of tokenizing {A}frican languages in frontier {LLMs}.
+\newblock \emph{arXiv preprint arXiv:2606.24460}.
+
+\bibitem[{Srivastava(2026)}]{srivastava2026tokenizertax}
+Priyansh Srivastava. 2026.
+\newblock The tokenizer tax: Quantifying and explaining the cross-lingual cost
+  of subword tokenization for {I}ndian languages.
+\newblock \emph{arXiv preprint arXiv:2607.24276}.
+
+\bibitem[{{The Unicode Consortium}(2025)}]{unicode29}
+{The Unicode Consortium}. 2025.
+\newblock Unicode standard annex \#29: Unicode text segmentation.
+\newblock \url{https://www.unicode.org/reports/tr29/}.
+
+\bibitem[{Velayuthan and Sarveswaran(2025)}]{velayuthan2025egalitarian}
+Menan Velayuthan and Kengatharaiyer Sarveswaran. 2025.
+\newblock Egalitarian language representation in language models: It all begins
+  with tokenizers.
+\newblock In \emph{Proceedings of the 31st International Conference on
+  Computational Linguistics}.
+
+\end{thebibliography}
